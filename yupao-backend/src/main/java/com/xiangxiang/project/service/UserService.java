@@ -58,9 +58,26 @@ public interface UserService extends IService<User> {
      */
     boolean userLogout(HttpServletRequest request);
 
-    User getSafetyUser(User safetyUsers);
+    /**
+     * 用户脱敏
+     * @param originUser
+     * @return
+     */
+    User getSafetyUser(User originUser);
 
-    List<User> searchUserByTagsByMemory(List<String> tagNameList);
+    /**
+     * 根据标签搜索用户 (内存过滤)
+     *
+     * @param tagNameList
+     * @return
+     */
+    List<User> searchUserByTags(List<String> tagNameList);
 
-    List<User> searchUserByTagsBySql(List<String> tagNameList);
+    /**
+     * 根据标签搜索用户 (基于 SQL 查询)
+     *
+     * @param tagNameList
+     * @return
+     */
+    List<User> searchUserByTagsBySQL(List<String> tagNameList);
 }

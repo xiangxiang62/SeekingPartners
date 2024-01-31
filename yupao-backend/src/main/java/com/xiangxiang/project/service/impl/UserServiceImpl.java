@@ -19,7 +19,9 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -161,11 +163,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return true;
     }
 
-/**
- * 用户脱敏
- * @param originUser
- * @return
- */
+    /**
+    * 用户脱敏
+    * @param originUser
+    * @return
+    */
     @Override
     public User getSafetyUser(User originUser){
         User safetyUser = new User();
@@ -179,6 +181,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setCreateTime(originUser.getCreateTime());
+        safetyUser.setTags(originUser.getTags());
+        safetyUser.setPlaneCode(originUser.getPlaneCode());
         return safetyUser;
     }
 
@@ -189,8 +193,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param tagNameList
      * @return
      */
-    @Override
-    public List<User> searchUserByTagsBySql(List<String> tagNameList){
+    @Deprecated
+    public List<User> searchUserByTagsBySQL(List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -205,13 +209,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     /**
-     * 根据标签搜索用户 (基于 SQL 查询)
+     * 根据标签搜索用户 (基于内存查询)
      *
      * @param tagNameList
      * @return
      */
     @Override
-    public List<User> searchUserByTagsByMemory(List<String> tagNameList){
+    public List<User> searchUserByTags(List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -220,9 +224,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> userList = userMapper.selectList(queryWrapper);
         // 在内存中判断是否存在包含要求的标签
         Gson gson = new Gson();
-        return userList.stream().filter((user) -> {
+        return userList.stream().filter(user -> {
             String tagStr = user.getTags();
-            Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<List<String>>(){}.getType());
+            Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
                 if (!tempTagNameSet.contains(tagName)){
                     return false;

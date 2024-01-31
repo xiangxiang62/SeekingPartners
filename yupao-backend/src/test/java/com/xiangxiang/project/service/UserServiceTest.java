@@ -86,7 +86,7 @@ class UserServiceTest {
     @Test
     public void testSearchUsersByTags(){
         List<String> tagNameList = Arrays.asList("java", "python");
-        List<User> userList = userService.searchUserByTagsBySql(tagNameList);
+        List<User> userList = userService.searchUserByTags(tagNameList);
         Assert.assertNotNull(userList);
     }
 }
