@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import {useRouter} from "vue-router";
+import {onMounted} from "vue";
+import myAxios from "../plugins/myAxios.ts";
 
 const user = {
   id: 1,
@@ -14,6 +16,8 @@ const user = {
 }
 
 const router = useRouter();
+
+
 const toEdit = (editKey: string, editName: string, currentValue: string) => {
   router.push({
     path: '/user/edit',
