@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiangxiang.project.model.entity.User;
 import com.xiangxiang.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,25 +28,39 @@ public class PreCacheJob {
     private UserService userService;
 
     @Resource
-    private RedisTemplate<String,Object> redisTemplate;
+    private RedissonClient redissonClient;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     // 此处缓存重点用户
     private List<Long> mainUserList = Arrays.asList(1L);
 
     // 定义每天执行
-    @Scheduled(cron = "0 48 17 * * *")
-    public void doCacheRecommendUser(){
-        for (Long userId : mainUserList) {
-            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
-            String redisKey = String.format("yupao:user:recommend:%s",userId);
-            ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-
-            // 写缓存
-            try {
-                valueOperations.set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
-            } catch (Exception e) {
-                log.info("redis set key error",e);
+    @Scheduled(cron = "0 45 23 * * *")
+    public void doCacheRecommendUser() {
+        RLock lock = redissonClient.getLock("yupao:precachejob:docache:lock");
+        try {
+            // 只有一个线程可以获取到锁
+            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+                for (Long userId : mainUserList) {
+                    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+                    Page<User> userPage = userService.page(new Page<>(1, 20), queryWrapper);
+                    String redisKey = String.format("yupao:user:recommend:%s", userId);
+                    ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+                    // 写缓存
+                    try {
+                        valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
+                    } catch (Exception e) {
+                        log.error("redis set key error", e);
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error(String.valueOf(e)) ;
+        }finally {
+            // 只能释放自己的锁
+            if (lock.isHeldByCurrentThread()){
+                lock.unlock();
             }
         }
     }
