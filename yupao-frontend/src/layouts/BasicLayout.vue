@@ -10,7 +10,7 @@
     <van-icon name="search" size="18" />
   </template>
   </van-nav-bar>
-  <div id="content">
+  <div id="content" style="padding-bottom: 50px">
     <router-view/>
   </div>
   <van-tabbar route @change="onChange">
