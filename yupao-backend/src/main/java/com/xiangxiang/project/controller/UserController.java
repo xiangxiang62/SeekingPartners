@@ -13,13 +13,17 @@ import com.xiangxiang.project.model.dto.user.*;
 import com.xiangxiang.project.model.entity.User;
 import com.xiangxiang.project.model.vo.UserVO;
 import com.xiangxiang.project.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -30,10 +34,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = "http://localhost:5173")
+@Slf4j
 public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
     // region 登录相关
 
@@ -260,8 +268,24 @@ public class UserController {
 
     @GetMapping("recommend")
     public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum,HttpServletRequest request){
+        // 判断缓存中有没有数据，如果有，直接读缓存
+        User user = userService.getLoginUser(request);
+        String redisKey = String.format("yupao:user:recommend:%s",user.getId());
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        // 如过有缓存直接从缓存中查
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        if (userPage != null){
+            return ResultUtils.success(userPage);
+        }
+        // 无缓存，查数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> userList = userService.page(new Page<>(pageNum,pageSize),queryWrapper);
-        return ResultUtils.success(userList);
+        userPage = userService.page(new Page<>(pageNum,pageSize),queryWrapper);
+        // 写缓存
+        try {
+            valueOperations.set(redisKey,userPage,10000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("redis set key error",e);
+        }
+        return ResultUtils.success(userPage);
     }
 }
