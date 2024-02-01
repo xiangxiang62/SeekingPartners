@@ -68,7 +68,7 @@ const doSearchResult = () => {
 
 </script>
 
-<template>
+<template style="margin-bottom: 50px">
   <form action="/">
     <van-search
         v-model="searchText"
