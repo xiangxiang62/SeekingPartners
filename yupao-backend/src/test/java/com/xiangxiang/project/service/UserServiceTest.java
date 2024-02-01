@@ -5,9 +5,10 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.util.StopWatch;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -89,4 +90,30 @@ class UserServiceTest {
         List<User> userList = userService.searchUserByTags(tagNameList);
         Assert.assertNotNull(userList);
     }
+
+    @Test
+    public void doConcurrencyInsertUsers(){
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        final int INSERT_NUM = 400000;
+        List<User> userList = new ArrayList<>();
+        for (int i = 0; i < INSERT_NUM; i++) {
+                User user = new User();
+                user.setUsername("香香");
+                user.setUserAccount("xiangxiang");
+                user.setAvatarUrl("https://vgms.fanyu.com/images/admin_logo.png");
+                user.setGender(0);
+                user.setUserPassword("121121212");
+                user.setPhone("123");
+                user.setEmail("122@qq.com");
+                user.setUserStatus(0);
+                user.setUserRole("0");
+                user.setPlaneCode("111");
+                user.setTags("[]");
+                userList.add(user);
+            }
+            userService.saveBatch(userList,10000);
+            stopWatch.stop();
+            System.out.println(stopWatch.getTotalTimeMillis());
+        }
 }

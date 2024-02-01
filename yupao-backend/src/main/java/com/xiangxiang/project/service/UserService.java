@@ -80,4 +80,10 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<User> searchUserByTagsBySQL(List<String> tagNameList);
+
+
+
+    int updateUser(User user);
+
+
 }

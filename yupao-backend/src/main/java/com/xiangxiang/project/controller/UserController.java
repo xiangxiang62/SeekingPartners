@@ -1,6 +1,7 @@
 package com.xiangxiang.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import com.xiangxiang.project.exception.BusinessException;
@@ -156,13 +157,17 @@ public class UserController {
      * @return
      */
     @PostMapping("/update")
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
+    public BaseResponse<Integer> updateUser(@RequestBody User userUpdateRequest, HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
-        boolean result = userService.updateById(user);
+        BaseResponse<UserVO> loginUser = getLoginUser(request);
+        if (userUpdateRequest.getId() != loginUser.getData().getId() && userService.isAdmin(request)){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"请修改自己的信息");
+        }
+        //User user = new User();
+        //BeanUtils.copyProperties(userUpdateRequest, user);
+        int result = userService.updateUser(userUpdateRequest);
         return ResultUtils.success(result);
     }
 
@@ -241,6 +246,22 @@ public class UserController {
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList){
         List<User> userList = userService.searchUserByTags(tagNameList);
+        return ResultUtils.success(userList);
+    }
+
+//    @GetMapping("recommend")
+//    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request){
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        List<User> userList = userService.list(queryWrapper);
+//        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+//        return ResultUtils.success(list);
+//    }
+
+
+    @GetMapping("recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum,HttpServletRequest request){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> userList = userService.page(new Page<>(pageNum,pageSize),queryWrapper);
         return ResultUtils.success(userList);
     }
 }

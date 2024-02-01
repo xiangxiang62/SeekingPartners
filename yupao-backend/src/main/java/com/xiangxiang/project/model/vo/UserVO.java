@@ -1,5 +1,8 @@
 package com.xiangxiang.project.model.vo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -20,7 +23,7 @@ public class UserVO implements Serializable {
     /**
      * 用户昵称
      */
-    private String userName;
+    private String username;
 
     /**
      * 账号
@@ -30,7 +33,7 @@ public class UserVO implements Serializable {
     /**
      * 用户头像
      */
-    private String userAvatar;
+    private String avatarUrl;
 
     /**
      * 性别
@@ -38,9 +41,14 @@ public class UserVO implements Serializable {
     private Integer gender;
 
     /**
-     * 用户角色: user, admin
+     * 电话
      */
-    private String userRole;
+    private String phone;
+
+    /**
+     * 邮箱
+     */
+    private String email;
 
     /**
      * 创建时间
@@ -48,9 +56,10 @@ public class UserVO implements Serializable {
     private Date createTime;
 
     /**
-     * 更新时间
+     * 星球编号
      */
-    private Date updateTime;
+    private String planeCode;
+
 
     private static final long serialVersionUID = 1L;
 }

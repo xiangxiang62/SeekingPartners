@@ -207,6 +207,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    @Override
+    public int updateUser(User user) {
+        userMapper.updateById(user);
+        return 0;
+    }
+
+
+
 
     /**
      * 根据标签搜索用户 (基于内存查询)
