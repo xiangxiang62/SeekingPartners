@@ -1,8 +1,15 @@
 package com.xiangxiang.project.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xiangxiang.project.model.dto.Team.TeamJoinRequest;
+import com.xiangxiang.project.model.dto.Team.TeamQuery;
+import com.xiangxiang.project.model.dto.Team.TeamUpdateRequest;
 import com.xiangxiang.project.model.entity.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xiangxiang.project.model.entity.User;
+import com.xiangxiang.project.model.vo.TeamUserVO;
+
+import java.util.List;
 
 /**
 * @author Administrator
@@ -20,4 +27,16 @@ public interface TeamService extends IService<Team> {
      */
     long addTeam(Team team, User loginUser);
 
+    List<TeamUserVO> listTeams(TeamQuery teamQuery, boolean idAdmin);
+
+    /**
+     * 更新队伍
+     *
+     * @param teamUpdateRequest
+     * @param loginUser
+     * @return
+     */
+    boolean updateTeam(TeamUpdateRequest teamUpdateRequest,User loginUser);
+
+    boolean joinTeam(TeamJoinRequest teamJoinRequest,User loginUser);
 }
