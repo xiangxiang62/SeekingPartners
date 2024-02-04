@@ -1,12 +1,12 @@
 <script setup>
 import {onMounted, ref} from 'vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import myAxios from "../plugins/myAxios.ts";
 import {Toast} from "vant";
 
 const route = useRoute();
 const {tags} = route.query;
-
+const router = useRouter();
 const userList = ref([])
 
 onMounted(async () => {
@@ -23,6 +23,7 @@ onMounted(async () => {
       })
       .catch(function (error) {
         console.log('/user/recommend error', error);
+        router.replace("/user/login");
         // Toast.fail("请求失败")
       })
 
