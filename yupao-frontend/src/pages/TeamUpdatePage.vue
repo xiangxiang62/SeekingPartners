@@ -1,25 +1,13 @@
 <script setup>
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 // import MyAxios from "../plugins/myAxios.js";
 
 
-const initFormData = {
-  "description": "",
-  "expireTime": "",
-  "maxNum": 0,
-  "name": "",
-  "password": "",
-  "status": 0,
-  "userId": 0
-}
+
 const result = ref('');
 const showPicker = ref(false);
-/*const onConfirm = ({ selectedValues }) => {
-  result.value = selectedValues.join('/');
-  showPicker.value = false;
-  addTeamData.value.expireTime = result.value;
-};*/
+
 const onConfirm = ({ selectedValues }) => {
   const year = selectedValues[0];
   const month = selectedValues[1].padStart(2, '0'); // 补零操作
@@ -33,28 +21,51 @@ const onConfirm = ({ selectedValues }) => {
 };
 
 // 用户填写的表单数据
-const addTeamData = ref({...initFormData});
+const addTeamData = ref({});
 import { showToast } from 'vant';
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import MyAxios from "../plugins/myAxios.ts";
+import myAxios from "../plugins/myAxios.ts";
 const router = useRouter();
+const route = useRoute();
 
 const onSubmit = async () => {
   const postData = {
     ...addTeamData.value,
     status:Number(addTeamData.value.status)
   }
-  const res = await MyAxios.post("/team/add",postData);
+  const res = await MyAxios.post("/team/update",postData);
   if (res?.code === 0 && res.data){
-    showToast('添加成功');
+    showToast('更新成功');
     router.push({
       path: '/team',
       replace: true,
     });
   }else {
-    showToast("添加失败")
+    showToast("更新失败")
   }
 }
+
+const id = route.query.id;
+/**
+ * 获取队伍信息
+ */
+onMounted(async () => {
+  if (id <= 0){
+    showToast("加载队伍失败");
+    return;
+  }
+  const res = await myAxios.get("/team/get",{
+    params:{
+      id: id,
+    }
+  });
+  if (res?.code === 0){
+    addTeamData.value = res.data
+  }else {
+    showToast("加载队伍失败，请稍后重试！")
+  }
+})
 </script>
 
 <template>
@@ -89,12 +100,6 @@ const onSubmit = async () => {
           <van-date-picker @confirm="onConfirm" @cancel="showPicker = false" />
         </van-popup>
 
-        <van-field name="stepper" label="最大人数">
-          <template #input>
-            <van-stepper v-model="addTeamData.maxNum" min="3" max="10" />
-          </template>
-        </van-field>
-
         <van-field name="radio" label="队伍状态">
           <template #input>
             <van-radio-group v-model="addTeamData.status" direction="horizontal">
@@ -114,15 +119,6 @@ const onSubmit = async () => {
             placeholder="请输入队伍密码"
             :rules="[{ required: true, message: '请填写密码' }]"
         />
-
-
-
-
-
-
-
-
-
 
       </van-cell-group>
       <div style="margin: 16px;">

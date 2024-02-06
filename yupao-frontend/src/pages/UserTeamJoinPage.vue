@@ -21,7 +21,7 @@ const teamList = ref([])
 const user = ref({});
 
 onMounted(async () => {
-  const res = await myAxios.get('/team/list')
+  const res = await myAxios.get('/team/list/my/join')
   if (res?.code === 0) {
     teamList.value = res.data;
   } else {
@@ -43,7 +43,7 @@ const doJoinTeam = async (id) => {
  * @returns {Promise<void>}
  */
 const listTeam = async (val) => {
-  const res = await myAxios.get('/team/list', {
+  const res = await myAxios.get('/team/list/my/join', {
     params: {
       searchText: val,
       pageNum: 1,
@@ -80,6 +80,7 @@ const doUpdateTeam = (id:number) => {
         v-for="team in teamList"
         :desc="team.description"
         :title="`${team.name}`"
+        thumb="https://img1.baidu.com/it/u=1947255442,3860275857&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1707325200&t=31f9f317fbe21633420f0255079e3535"
     >
       <template #tags>
         <van-tag plain type="primary" style="margin-right: 8px;margin-top: 6px">{{ teamStatusEnum[team.status] }}

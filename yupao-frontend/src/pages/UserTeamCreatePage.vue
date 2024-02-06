@@ -21,7 +21,7 @@ const teamList = ref([])
 const user = ref({});
 
 onMounted(async () => {
-  const res = await myAxios.get('/team/list')
+  const res = await myAxios.get('/team/list/my/create')
   if (res?.code === 0) {
     teamList.value = res.data;
   } else {
@@ -43,7 +43,7 @@ const doJoinTeam = async (id) => {
  * @returns {Promise<void>}
  */
 const listTeam = async (val) => {
-  const res = await myAxios.get('/team/list', {
+  const res = await myAxios.get('/team/list/my/create', {
     params: {
       searchText: val,
       pageNum: 1,
@@ -75,11 +75,12 @@ const doUpdateTeam = (id:number) => {
 <template>
   <div>
     <van-search v-model="searchText" @search="onSearch" placeholder="搜素队伍"/>
-    <van-button type="primary" @click="doJoinTeam">创建队伍</van-button>
+    <van-button type="primary" @click="doJoinTeam1">创建队伍</van-button>
     <van-card
         v-for="team in teamList"
         :desc="team.description"
         :title="`${team.name}`"
+        thumb="https://img1.baidu.com/it/u=1947255442,3860275857&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1707325200&t=31f9f317fbe21633420f0255079e3535"
     >
       <template #tags>
         <van-tag plain type="primary" style="margin-right: 8px;margin-top: 6px">{{ teamStatusEnum[team.status] }}

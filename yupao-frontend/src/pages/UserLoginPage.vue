@@ -4,6 +4,7 @@ import {useRouter} from "vue-router";
 const router = useRouter();
 import {ref} from "vue";
 import myAxios from "../plugins/myAxios.ts";
+import {showToast} from "vant";
 
 const userAccount = ref('');
 const userPassword = ref('');
@@ -15,8 +16,11 @@ const onSubmit = async () => {
   console.log(res)
   if (res.code === 0 && res.data){
     router.replace("/");
+    showToast(res.message)
+    showToast("登录成功")
     console.log("登录成功")
   }else {
+    showToast(res.message)
     console.log("登录失败")
   }
 };

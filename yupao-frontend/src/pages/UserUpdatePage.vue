@@ -3,17 +3,6 @@ import {useRouter} from "vue-router";
 import {onMounted, ref} from "vue";
 import myAxios from "../plugins/myAxios.ts";
 
-/*const user = {
-  id: 1,
-  username: 'string',
-  userAccount: 'string',
-  avatarUrl: 'https://img1.baidu.com/it/u=2129525223,626456209&fm=253&app=138&size=w931&n=0&f=JPEG&fmt=auto?sec=1706720400&t=d02bf7ed2a912cd2bc8aac533e1b551b',
-  gender: '男',
-  phone: 'string',
-  email: 'string',
-  planeCode: 'string',
-  createTime: new Date(),
-}*/
 
 const router = useRouter();
 
