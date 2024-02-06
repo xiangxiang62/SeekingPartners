@@ -6,14 +6,20 @@ import com.xiangxiang.project.common.PageRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class TeamQuery extends PageRequest {
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
+
+    /**
+     * idList
+     */
+    private List<Long> idList;
 
     /**
      * 队伍名称

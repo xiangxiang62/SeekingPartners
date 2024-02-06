@@ -10,6 +10,7 @@ import com.xiangxiang.project.mapper.UserMapper;
 import com.xiangxiang.project.model.entity.User;
 import com.xiangxiang.project.service.UserService;
 import com.xiangxiang.project.common.ErrorCode;
+import com.xiangxiang.utils.AlgorithmUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,9 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -164,12 +163,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-    * 用户脱敏
-    * @param originUser
-    * @return
-    */
+     * 用户脱敏
+     *
+     * @param originUser
+     * @return
+     */
     @Override
-    public User getSafetyUser(User originUser){
+    public User getSafetyUser(User originUser) {
         User safetyUser = new User();
         safetyUser.setId(originUser.getId());
         safetyUser.setUsername(originUser.getUsername());
@@ -194,8 +194,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Deprecated
-    public List<User> searchUserByTagsBySQL(List<String> tagNameList){
-        if (CollectionUtils.isEmpty(tagNameList)){
+    public List<User> searchUserByTagsBySQL(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -213,7 +213,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return 0;
     }
 
-
+    @Override
+    public List<User> matchUsers(long num, User loginUser) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id","tags");
+        queryWrapper.isNotNull("tags");
+        List<User> userList = this.list();
+        String tags = loginUser.getTags();
+        Gson gson = new Gson();
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+        }.getType());
+        // 用户列表的下标 =》 相似度
+        SortedMap<Integer, Long> indexDistanceMap = new TreeMap<>();
+        for (int i = 0; i < userList.size(); i++) {
+            User user = userList.get(i);
+            String userTags = user.getTags();
+            // 无标签
+            if (StringUtils.isBlank(userTags) || loginUser.getId() == user.getId()) {
+                continue;
+            }
+            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
+            }.getType());
+            long distance = AlgorithmUtils.minDistance(tagList, userTagList);
+            indexDistanceMap.put(i, distance);
+        }
+        List<Integer> maxDistanceIndexList = indexDistanceMap.keySet().stream().limit(num).collect(Collectors.toList());
+        List<User> userVOList = maxDistanceIndexList.stream().map(index -> getSafetyUser(userList.get(index))).collect(Collectors.toList());
+        return userVOList;
+    }
 
 
     /**
@@ -223,8 +250,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public List<User> searchUserByTags(List<String> tagNameList){
-        if (CollectionUtils.isEmpty(tagNameList)){
+    public List<User> searchUserByTags(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -234,10 +261,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Gson gson = new Gson();
         return userList.stream().filter(user -> {
             String tagStr = user.getTags();
-            Set<String> tempTagNameSet = gson.fromJson(tagStr,new TypeToken<Set<String>>(){}.getType());
+            Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
+            }.getType());
             tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
-                if (!tempTagNameSet.contains(tagName)){
+                if (!tempTagNameSet.contains(tagName)) {
                     return false;
                 }
             }

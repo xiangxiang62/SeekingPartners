@@ -2,6 +2,7 @@ package com.xiangxiang.project.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xiangxiang.project.common.BaseResponse;
 import com.xiangxiang.project.model.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
@@ -86,4 +87,5 @@ public interface UserService extends IService<User> {
     int updateUser(User user);
 
 
+    List<User> matchUsers(long num, User loginUser);
 }
